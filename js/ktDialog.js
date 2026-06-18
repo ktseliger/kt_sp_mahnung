@@ -5,8 +5,9 @@ const ktDialogConfig = {
             'makeInfoToHelp',
             'deactLegendClick'
         ],
-        30: [
-                'activateHistory'
+        50: [
+                'disableButtonsNoIncident',
+                'activatePopups'
         ]
     },
     submit: {}
@@ -128,7 +129,20 @@ class ktDialog extends ktDialogBase{
         }, true);
     }
 
-    activateHistory(){
+    disableButtonsNoIncident(){
+
+        document.querySelectorAll('button[id^="showPositions_"]').forEach(elem => {
+
+            const matches = elem.id.match(/showPositions_.+(\d+)$/);
+
+            if(matches && !document.querySelector(`#showPositions_zug_vorgang_${matches[1]}`).innerHTML.trim()){
+                elem.disabled = true;
+            }
+        });
+
+    }
+
+    activatePopups(){
 
         document.querySelector('table#showPositions').addEventListener('click', e => {
 
@@ -140,7 +154,8 @@ class ktDialog extends ktDialogBase{
             }
 
             //Anzeigen des Vorgangsverlaufs
-            if(histMatch) {
+            if(histMatch && document.querySelector(`#showPositions_zug_vorgang_${histMatch[1]}`).innerHTML.trim()) {
+
                 const index = histMatch[1];
                 const value = jr_get_value(`showPositions_rel_prozessid_${index}`);
                 jr_set_value('rel_prozessid', value);
@@ -153,7 +168,7 @@ class ktDialog extends ktDialogBase{
             }
 
             //Anzeigen der Bemerkungen
-            if(bemMatch) {
+            if(bemMatch && document.querySelector(`#showPositions_zug_vorgang_${bemMatch[1]}`).innerHTML.trim()) {
                 const index = bemMatch[1];
                 const value = jr_get_value(`showPositions_rel_bemerkungen_${index}`);
                 jr_set_value('rel_bemerkungen', value);

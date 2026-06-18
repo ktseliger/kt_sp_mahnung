@@ -83,4 +83,18 @@ class Config {
         public function has(string $setting): bool {
                 return isset($this->settings[$setting]);
         }
+
+        /**
+         * @return array
+         */
+        public function keys(): array {
+                return array_keys($this->settings);
+        }
+
+        /**
+         * @return array
+         */
+        public function all(): array {
+                return $this->settings;
+        }
 }

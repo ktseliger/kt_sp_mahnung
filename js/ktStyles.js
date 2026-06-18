@@ -117,4 +117,25 @@ const ktStyles = `
                 padding-top: 0;
                 padding-bottom: 0;
         }
+        
+        button[id^="showPositions_"][readonly],
+        button[id^="showPositions_"]:disabled{
+                pointer-events: none;
+                background-color: unset !important;
+                color: silver !important;
+        }
+        
+        div[role="dialog"]{
+            box-shadow: 1px 1px 4px black;
+            border-radius: .2rem;
+        }
+
+        div.ui-dialog-titlebar{
+            background-color: #131c1c;
+            color: white;
+        }
+
+        span.ui-icon-closethick{
+        background-color: white;
+        }
 `;
