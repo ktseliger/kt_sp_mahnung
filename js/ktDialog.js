@@ -7,7 +7,8 @@ const ktDialogConfig = {
         ],
         50: [
                 'disableButtonsNoIncident',
-                'activatePopups'
+                'activatePopups',
+                'setCSSClasses'
         ]
     },
     submit: {}
@@ -196,6 +197,25 @@ class ktDialog extends ktDialogBase{
             position: { my: "center", at: "center", of: window },
             resize: false,
             width: '40%'
+        });
+    }
+
+    setCSSClasses(){
+
+        document.querySelectorAll('tbody tr[id^="div_showPositions_"]').forEach(trElem => {
+
+            const matches = trElem.id.match(/_(\d+)$/);
+
+            if(!matches){ return; }
+
+            const index = matches[1];
+
+            "[jrc_step_flag_css_classes]".split(',').map(e => { return e.trim() }).forEach(c => {
+
+                if(!!Number(jr_get_value(`showPositions_rel_${c}_${index}`))){
+                    trElem.addClassName(c);
+                }
+            });
         });
     }
 }

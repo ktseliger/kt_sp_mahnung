@@ -138,4 +138,26 @@ const ktStyles = `
         span.ui-icon-closethick{
         background-color: white;
         }
+        
+        tr.ausgesteuert{
+                background: #f77 !important;
+        }
+        
+        tr.ausgesteuert:hover{
+                background: #f55 !important;
+        }
+        
+        tr.fibu{
+                background: #7f7 !important;
+        }
+        
+        tr.fibu:hover{
+                background: #5d5 !important;
+        }
+        
+        table#legende div {
+                padding: .5rem;
+                outline: 1px ghostwhite solid;
+                border-radius: .2rem;
+        }
 `;
