@@ -66,6 +66,8 @@ class searchRelatedDocuments {
                                 $rowId,
                                 $this->config->get('subtable_related_incidents')
                         );
+
+                        $this->setFlags($processValues['processid'], $rowId);
                 }
         }
 
@@ -105,5 +107,38 @@ class searchRelatedDocuments {
                 }
 
                 return $this->dbh->fetchRow($result);
+        }
+
+        /**
+         * @param string $processid
+         * @param int $rowId
+         * @throws JobRouterException
+         */
+        private function setFlags(string $processid, int $rowId): void {
+
+                $prefix = 'er_proc_step_';
+
+                foreach($this->config->allStartsWith($prefix) as $k => $step){
+
+                        $flagName = substr($k, strlen($prefix));
+                        $sql = "SELECT COUNT(*) FROM JRINCIDENTS WHERE processid = :processid AND step = :step";
+
+                        $params = [
+                                ':processid' => $processid,
+                                ':step'      => $step
+                        ];
+
+                        $types = [
+                                ConnectionInterface::TYPE_TEXT,
+                                ConnectionInterface::TYPE_INTEGER
+                        ];
+
+                        if(($result = $this->dbh->preparedSelect($sql, $params, $types)) === false){
+                                throw new JobRouterException("Error executing SQL query: ".$this->dbh->getErrorMessage());
+                        }
+
+                        $this->class->setSubtableValue($this->config->get('subtable_related_incidents'), $rowId, "rel_{$flagName}", (int)(bool)$this->dbh->fetchOne($result));
+                }
+
         }
 }
