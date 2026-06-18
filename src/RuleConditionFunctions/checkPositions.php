@@ -42,6 +42,11 @@ class checkPositions {
                                 return false;
                         }
                 }
+
+                if(!($this->class->getSubtableCount($this->config->get('subtable_related_incidents')) || $this->class->getTableValue('beleg_nummer'))){
+                        return false;
+                }
+
                 return true;
         }
 }

@@ -31,7 +31,6 @@ class searchRelatedDocuments {
                 $this->config = Config::getInstance($class);
                 $this->dbh    = $class->getJobDB();
                 $this->execute();
-                //throw new JobRouterException("FuncFin");
         }
 
         /**
@@ -41,9 +40,10 @@ class searchRelatedDocuments {
 
                 foreach($this->class->getSubtableRowIds($this->config->get('subtable_related_incidents')) as $rowId){
 
-                        $docNo = $this->class->getSubtableValue($this->config->get('subtable_related_incidents'), $rowId, 'pos_nummer');
+                        $docNo         = $this->class->getSubtableValue($this->config->get('subtable_related_incidents'), $rowId, 'pos_nummer');
+                        $processValues = $this->getLastPTEntry($docNo);
 
-                        if(($processValues = $this->getLastPTEntry($docNo)) === null || !count($processValues ?? [])) {
+                        if(empty($processValues)) {
                                 continue;
                         }
 
@@ -58,19 +58,29 @@ class searchRelatedDocuments {
                                 $this->class->setSubtableValue($this->config->get('subtable_related_incidents'), $rowId, $k, $v);
                         }
 
-                        if($processValues[$this->config->get('process_er_file_field')]) {
+                        $fileField = $processValues[$this->config->get('process_er_file_field')] ?? null;
 
-                                $this->class->attachFile(
-                                        $this->class->getFullUploadPath(
-                                                $processValues[$this->config->get('process_er_file_field')]
-                                        ),
-                                        'rel_file',
-                                        $rowId,
-                                        $this->config->get('subtable_related_incidents')
-                                );
+                        try{
+                                if($fileField) {
+                                        $this->class->attachFile(
+                                                $this->class->getFullUploadPath(
+                                                        $fileField
+                                                ),
+                                                'rel_file',
+                                                $rowId,
+                                                $this->config->get('subtable_related_incidents')
+                                        );
+                                }
+                        }
+                        catch(JobRouterException $e){
+                                /*
+                                 * Hier nichts weiter tun - wenn der zugehörige ER-Vorgang schon archiviert wurde,
+                                 * dann wird die Originaldatei nicht mehr auf dem FS sein
+                                 */
                         }
 
                         $this->setFlags($processValues['processid'], $rowId);
+                        $this->class->setSubtableValue($this->config->get('subtable_related_incidents'), $rowId, 'rel_history', $this->class->getIncidentUrl($processValues['processid'], $this->class->getCurrentUsername()));
                 }
         }
 

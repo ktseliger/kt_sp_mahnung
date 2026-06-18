@@ -158,14 +158,11 @@ class ktDialog extends ktDialogBase{
             if(histMatch && document.querySelector(`#showPositions_zug_vorgang_${histMatch[1]}`).innerHTML.trim()) {
 
                 const index = histMatch[1];
-                const value = jr_get_value(`showPositions_rel_prozessid_${index}`);
-                jr_set_value('rel_prozessid', value);
-                jr_sql_refresh('historie', e => {
-
-                    const parent = $j('div#historie').parent();
-                    const histElem = $j('div#historie').detach();
-                    this.showPopup(parent, histElem, 'Verlauf');
-                });
+                const link = jr_get_value(`showPositions_rel_history_${index}`);
+                const iframe = document.getElementById('rel_history');
+                const parent = iframe.parentElement;
+                iframe.src = link;
+                this.showPopup(parent, iframe, "Verlauf", "auto", "auto");
             }
 
             //Anzeigen der Bemerkungen
@@ -181,7 +178,7 @@ class ktDialog extends ktDialogBase{
         });
     }
 
-    showPopup(parent, child, title){
+    showPopup(parent, child, title, width, height){
         console.log('Zeige Popup');
         $j('#popup').append(child);
         $j('#popup').css('position', 'relative');
@@ -196,7 +193,8 @@ class ktDialog extends ktDialogBase{
             modal: true,
             position: { my: "center", at: "center", of: window },
             resize: false,
-            width: '40%'
+            width: width || '40%',
+            height: height || 'auto'
         });
     }
 
