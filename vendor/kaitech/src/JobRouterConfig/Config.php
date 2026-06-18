@@ -97,4 +97,12 @@ class Config {
         public function all(): array {
                 return $this->settings;
         }
+
+        public function allStartsWith(string $prefix): array {
+
+                return array_filter(
+                        $this->settings,
+                        static fn($k) => preg_match("/^{$prefix}/", $k),
+                        ARRAY_FILTER_USE_KEY);
+        }
 }
