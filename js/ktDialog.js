@@ -6,9 +6,9 @@ const ktDialogConfig = {
             'deactLegendClick'
         ],
         50: [
-                'disableButtonsNoIncident',
-                'activatePopups',
-                'setCSSClasses'
+            'disableButtonsNoIncident',
+            'activatePopups',
+            'setCSSClasses'
         ]
     },
     submit: {}
@@ -17,98 +17,111 @@ const ktDialogConfig = {
 class ktDialogBase {
 
     dialogID = undefined;
-    static runFuncs;
+
     static run = {};
     static submit = {};
+    static hookMethods = [];
 
     constructor(dialogID) {
 
-        if(typeof ktLib === "function"){
-            globalThis.$KTLIB = new ktLib();
-        }
-
-        let jrstep;
-
-        if(globalThis.hasOwnProperty('$JRSTEP') && $JRSTEP.hasOwnProperty('step')){
-            jrstep = $JRSTEP.step;
-        }
-
-        if((!dialogID || typeof dialogID !== 'number') && !jrstep){
-            throw new Error('Dialog ID is not defined');
-        }
-
-        this.dialogID = dialogID || jrstep;
-        this.getRunMethods();
+        this.initKtLib();
+        this.dialogID = this.resolveDialogID(dialogID);
+        this.collectHookMethods();
         this.run();
     }
 
-    getRunMethods() {
+    initKtLib() {
 
+        if (typeof ktLib === 'function' && !globalThis.$KTLIB) {
+            globalThis.$KTLIB = new ktLib();
+        }
+    }
+
+    resolveDialogID(dialogID) {
+        const jrstep = globalThis.$JRSTEP?.step;
+
+        const resolvedID = dialogID ?? jrstep;
+
+        if (resolvedID === undefined || resolvedID === null || resolvedID === '') {
+            throw new Error('Dialog ID is not defined');
+        }
+
+        const numericID = Number(resolvedID);
+
+        if (!Number.isInteger(numericID)) {
+            throw new Error(`Dialog ID "${resolvedID}" is not a valid integer`);
+        }
+
+        return numericID;
+    }
+
+    collectHookMethods() {
+        const methods = new Set();
         let proto = Object.getPrototypeOf(this);
-        ktDialog.runFuncs = [];
 
-        while (proto && proto !== Object.prototype) {
+        while (proto && proto !== ktDialogBase.prototype) {
+
             Object.getOwnPropertyNames(proto)
-                    .filter(prop => typeof this[prop] === 'function')
-                    .forEach(method => {
-                        if (/^__(run|submit)__\d+$/.test(method)) {
-                            ktDialog.runFuncs.push(method);
-                        }
-                    });
+                    .filter(name => /^__(run|submit)__\d+$/.test(name))
+                    .filter(name => typeof this[name] === 'function')
+                    .forEach(name => methods.add(name));
 
             proto = Object.getPrototypeOf(proto);
         }
+
+        this.constructor.hookMethods = [...methods];
     }
 
-    run(){
-
-        //Führt die Standard-Funktionen bei Initialisierung aus
-        if(this.constructor.hasOwnProperty('run') && this.constructor.run.hasOwnProperty('default')){
-            this.constructor.run['default'].forEach(method => {
-                typeof this[method] === 'function' && this[method]();
-            });
-        }
-
-        //Führt die spezifischen Funktionen bei Initialisierung aus
-        if(this.constructor.hasOwnProperty('run') && this.constructor.run.hasOwnProperty(this.dialogID)){
-            this.constructor.run[this.dialogID].forEach(method => {
-                typeof this[method] === 'function' && this[method]();
-            });
-        }
-
-        //Führt spezifischen Code bei Initialisierung aus
-        if(this.constructor.runFuncs.includes("__run__" + this.dialogID)){
-            typeof this[`__run__${this.dialogID}`] === 'function' && this[`__run__${this.dialogID}`]();
-        }
+    run() {
+        this.executeDialogMethods('run');
     }
 
-    submit(){
+    submit() {
+        this.executeDialogMethods('submit');
+    }
 
-        //Führt die Standard-Funktionen beim Absenden aus
-        if(this.constructor.hasOwnProperty('submit') && this.constructor.submit.hasOwnProperty('default')){
-            this.constructor.submit['default'].forEach(method => {
-                typeof this[method] === 'function' &&this[method]();
-            });
+    executeDialogMethods(type) {
+        const config = this.constructor[type] ?? {};
+
+        this.executeMethodList(config.default);
+        this.executeMethodList(config[this.dialogID]);
+        this.executeHook(type);
+    }
+
+    executeMethodList(methods) {
+
+        if (!Array.isArray(methods)) {
+            return;
         }
 
-        //Führt die spezifischen Funktionen beim Absenden aus
-        if(this.constructor.hasOwnProperty('submit') && this.constructor.submit.hasOwnProperty(this.dialogID)){
-            this.constructor.submit[this.dialogID].forEach(method => {
-                typeof this[method] === 'function' &&this[method]();
-            });
-        }
+        methods.forEach(method => {
 
-        //Führt spezifischen Code beim Absenden aus
-        if(this.constructor.runFuncs.includes("__submit__" + this.dialogID)){
-            typeof this[`__submit__${this.dialogID}`] === 'function' && this[`__submit__${this.dialogID}`]();
+            if (typeof this[method] === 'function') {
+                this[method]();
+            } else {
+                console.warn(`Configured method "${method}" does not exist.`);
+            }
+        });
+    }
+
+    executeHook(type) {
+
+        const hook = `__${type}__${this.dialogID}`;
+
+        if (
+                this.constructor.hookMethods.includes(hook) &&
+                typeof this[hook] === 'function'
+        ) {
+            this[hook]();
         }
     }
 }
 
 class ktDialog extends ktDialogBase{
+
+    static run = ktDialogConfig.run;
+    static submit = ktDialogConfig.submit;
     constructor(dialogID) {
-        ktDialog.run = ktDialogConfig.run;
-        ktDialog.submit = ktDialogConfig.submit;
         super(dialogID);
     }
 
@@ -179,7 +192,7 @@ class ktDialog extends ktDialogBase{
     }
 
     showPopup(parent, child, title, width, height){
-        console.log('Zeige Popup');
+
         $j('#popup').append(child);
         $j('#popup').css('position', 'relative');
 

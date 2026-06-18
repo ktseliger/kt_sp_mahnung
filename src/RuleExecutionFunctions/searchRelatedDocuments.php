@@ -80,7 +80,13 @@ class searchRelatedDocuments {
                         }
 
                         $this->setFlags($processValues['processid'], $rowId);
-                        $this->class->setSubtableValue($this->config->get('subtable_related_incidents'), $rowId, 'rel_history', $this->class->getIncidentUrl($processValues['processid'], $this->class->getCurrentUsername()));
+                        $this->class->setSubtableValue(
+                                $this->config->get('subtable_related_incidents'),
+                                $rowId,
+                                'rel_history',
+                                $this->class->getIncidentUrl($processValues['processid'], $this->class->getCurrentUsername()
+                                )
+                        );
                 }
         }
 
