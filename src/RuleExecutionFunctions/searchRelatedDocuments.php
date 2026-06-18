@@ -58,14 +58,17 @@ class searchRelatedDocuments {
                                 $this->class->setSubtableValue($this->config->get('subtable_related_incidents'), $rowId, $k, $v);
                         }
 
-                        $this->class->attachFile(
-                                $this->class->getFullUploadPath(
-                                        $processValues[$this->config->get('process_er_file_field')]
-                                ),
-                                'rel_file',
-                                $rowId,
-                                $this->config->get('subtable_related_incidents')
-                        );
+                        if($processValues[$this->config->get('process_er_file_field')]) {
+
+                                $this->class->attachFile(
+                                        $this->class->getFullUploadPath(
+                                                $processValues[$this->config->get('process_er_file_field')]
+                                        ),
+                                        'rel_file',
+                                        $rowId,
+                                        $this->config->get('subtable_related_incidents')
+                                );
+                        }
 
                         $this->setFlags($processValues['processid'], $rowId);
                 }
