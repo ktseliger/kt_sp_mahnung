@@ -160,4 +160,16 @@ const ktStyles = `
                 outline: 1px ghostwhite solid;
                 border-radius: .2rem;
         }
+        
+        table[id^="SepRow"]{
+            margin: 0;
+            border-top: 1px solid lightgrey;
+            width: 99%;
+            border-collapse: collapse;
+            position: relative;
+        }
+        
+        div.jr-dialog-form-label-wrapper:has(label#notizen_styleOL_label){
+                display: none;
+        }
 `;
